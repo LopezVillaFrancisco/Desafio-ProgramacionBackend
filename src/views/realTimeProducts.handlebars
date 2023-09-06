@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lista de Productos en Tiempo Real</title>
+</head>
+<body>
+    <h1>Lista de Productos en Tiempo Real</h1>
+    <ul id="product-list">
+        {{#each products}}
+        <li>
+            Título: {{this.title}}<br>
+            Descripción: {{this.description}}<br>
+            Precio: {{this.price}}<br>
+            Thumbnail: {{this.thumbnail}}<br>
+            Código: {{this.code}}<br>
+            Stock: {{this.stock}}
+        </li>
+        {{/each}}
+    </ul>
+
+    <div>
+        <h2>Agregar Nuevo Producto</h2>
+        <form id="add-product-form">
+            <label for="title">Título:</label>
+            <input type="text" id="title" name="title" required><br>
+
+            <label for="description">Descripción:</label>
+            <input type="text" id="description" name="description" required><br>
+
+            <label for="price">Precio:</label>
+            <input type="number" id="price" name="price" required><br>
+
+            <label for="thumbnail">Thumbnail:</label>
+            <input type="text" id="thumbnail" name="thumbnail" required><br>
+
+            <label for="code">Código:</label>
+            <input type="text" id="code" name="code" required><br>
+
+            <label for="stock">Stock:</label>
+            <input type="number" id="stock" name="stock" required><br>
+
+            <button type="submit">Agregar Producto</button>
+        </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const socket = io.connect();
+
+            
+            const addProduct = (event) => {
+                event.preventDefault();
+
+                const title = document.getElementById('title').value;
+                const description = document.getElementById('description').value;
+                const price = parseFloat(document.getElementById('price').value);
+                const thumbnail = document.getElementById('thumbnail').value;
+                const code = document.getElementById('code').value;
+                const stock = parseInt(document.getElementById('stock').value);
+
+                const newProduct = {
+                    title,
+                    description,
+                    price,
+                    thumbnail,
+                    code,
+                    stock
+                };
+
+                socket.emit('addProduct', newProduct);
+            };
+            socket.on('updateProducts', (products) => {
+                const productList = document.getElementById('product-list');
+                productList.innerHTML = ''; 
+                products.forEach((product) => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `
+                        Título: ${product.title}<br>
+                        Descripción: ${product.description}<br>
+                        Precio: ${product.price}<br>
+                        Thumbnail: ${product.thumbnail}<br>
+                        Código: ${product.code}<br>
+                        Stock: ${product.stock}
+                    `;
+                    productList.appendChild(listItem);
+                });
+            });
+            const addProductForm = document.getElementById('add-product-form');
+            addProductForm.addEventListener('submit', addProduct);
+        });
+    </script>
+</body>
+</html>
