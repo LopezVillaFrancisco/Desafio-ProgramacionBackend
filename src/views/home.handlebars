@@ -8,12 +8,17 @@
     {{{body}}}
     <h2>Productos</h2>
 
-    <h3>Lista de productos</h3>
-    <ol>
-        {{#each products}}
-        <li>{{this.title}} - ${{this.price}}</li>
-        {{/each}}
-    </ol>
+<h3>Lista de productos</h3>
+<ol>
+  {{#if productos}}
+    {{#each @root.productos}}
+  <li>{{this.title}} - ${{this.price}}</li>
+    {{/each}}
+  {{else}}
+    <li>No se encontraron productos</li>
+  {{/if}}
+</ol>
+
 
     <script src="/socket.io/socket.io.js"></script>
 </body>

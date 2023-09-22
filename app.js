@@ -1,74 +1,42 @@
 const express = require('express');
 const path = require('path');
-const ProductManager = require('./src/productManager');
 const handlebars = require('express-handlebars');
-const app = express();
-const server = app.listen(8080, () => console.log('Servidor en línea en el puerto 8080'));
-const socketIo = require('socket.io');
+const mongoose = require('mongoose');
+const productsRouter = require('./src/dao/Routes/products.router');
+const http = require('http'); 
+const socketIo = require('socket.io'); 
 
-app.engine('handlebars', handlebars.engine());
+const app = express();
+const port = 8080;
+app.engine(
+  'handlebars',
+  handlebars.engine({
+    allowedProtoMethods: {
+      trim: true 
+    }
+  })
+);
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, '/src/views'));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const postProduct = new ProductManager();
+mongoose
+  .connect('mongodb+srv://franlopezvilla5:coderhouse123@ecommerce.wdtftbn.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp')
+  .then(() => console.log('Db connected'))
+  .catch(error => console.log(error));
 
-postProduct.addProduct('Producto prueba 1', 'Este producto es una prueba', 200, 'Sin imagen', 'abc123', 25);
-postProduct.addProduct('Producto prueba 2', 'Este producto es una prueba', 210, 'Sin imagen', 'abc124', 30);
-postProduct.addProduct('Producto prueba 3', 'Este producto es una prueba', 290, 'Sin imagen', 'abc125', 40);
-postProduct.addProduct('Producto prueba 4', 'Este producto es una prueba', 393, 'Sin imagen', 'abc126', 21);
-postProduct.addProduct('Producto prueba 5', 'Este producto es una prueba', 790, 'Sin imagen', 'abc127', 22);
-postProduct.addProduct('Producto prueba 6', 'Este producto es una prueba', 690, 'Sin imagen', 'abc128', 27);
-postProduct.addProduct('Producto prueba 7', 'Este producto es una prueba', 599, 'Sin imagen', 'abc129', 12);
-postProduct.addProduct('Producto prueba 8', 'Este producto es una prueba', 594, 'Sin imagen', 'abc131', 55);
-postProduct.addProduct('Producto prueba 9', 'Este producto es una prueba', 684, 'Sin imagen', 'abc132', 45);
-postProduct.addProduct('Producto prueba 10', 'Este producto es una prueba', 884, 'Sin imagen', 'abc134', 35);
+app.use('/api/products', productsRouter);
 
-app.get('/', (req, res) => {
-    res.render('home.handlebars', {
-        products: postProduct.products
-    });
-});
-
-app.get('/products', (req, res) => {
-    const limit = parseInt(req.query.limit);
-    if (limit) {
-        let productosLimit = postProduct.products.slice(0, limit);
-        res.send(`Los ${limit} primeros productos: ${JSON.stringify(productosLimit)}`);
-    } else {
-        res.send(`Productos: ${JSON.stringify(postProduct.products)}`);
-    }
-});
-
-app.get('/products/:idUsuario', (req, res) => {
-    const idUsuario = parseInt(req.params.idUsuario);
-    const producto = postProduct.getProductById(idUsuario);
-
-    if (producto) {
-        res.send(`El producto con ID ${idUsuario} es: ${JSON.stringify(producto)}`);
-    } else {
-        res.send(`No se encontró ningún producto con ID ${idUsuario}`);
-    }
-}); 
-app.get('/realtimeproducts', (req, res) => {
-    res.render('realTimeProducts.handlebars', {
-        products: postProduct.products
-    });
-});
-
-
+const server = http.createServer(app);
 
 const io = socketIo(server);
+
 io.on('connection', (socket) => {
-    console.log('Un cliente se ha conectado.');
+  console.log('Usuario conectado');
+});
 
-    socket.emit('updateProducts', postProduct.products);
-
-    socket.on('addProduct', (newProduct) => {
-        postProduct.addProduct(newProduct.title, newProduct.description, newProduct.price, newProduct.thumbnail, newProduct.code, newProduct.stock);
-
-        io.emit('updateProducts', postProduct.products);
-    });
+server.listen(port, () => {
+  console.log(`Corriendo el server en el puerto ${port}`);
 });
