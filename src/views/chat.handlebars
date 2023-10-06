@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+</head>
+<body>
+    <h3>Chat:</h3>
+    <hr>
+    <input type="text" id="mensaje">
+    <div id="mensajes"></div>
+   <br>
+    <script src="socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+const socket=io()
+
+let nombre=''
+let divMensajes=document.getElementById('mensajes')
+let inputMensajes=document.getElementById('mensaje')
+
+inputMensajes.addEventListener('keyup',evt=>{
+    if(evt.key==='Enter'){
+        if(evt.target.value.trim()!==''){
+            socket.emit('nuevoMensaje',{emisor:nombre, mensaje:evt.target.value.trim()})
+            evt.target.value=''
+            inputMensajes.focus()            
+        }
+    }
+})
+
+Swal.fire({
+    title:"Identifiquese",
+    input:"text",
+    text:"Ingrese su nickname",
+    inputValidator: (value)=>{
+        return !value && "Ingrese su nombre"
+    },
+    allowOutsideClick:false 
+}).then(resultado=>{
+    nombre=resultado.value
+
+    document.title=nombre
+    inputMensajes.focus()            
+
+
+    socket.emit('id',nombre)
+
+    socket.on('bienvenida',mensajes=>{
+
+        let txt=''
+        mensajes.forEach(mensaje=>{
+            txt+=`<p class="mensaje"><strong>${mensaje.emisor}</strong>:<i>${mensaje.mensaje}</i></p><br>`
+        })
+
+        divMensajes.innerHTML=txt
+        divMensajes.scrollTop=divMensajes.scrollHeight;
+    })
+
+    socket.on('newUser',nombre=>{
+        Swal.fire({
+            text:`${nombre} se conecto al chat`,
+            toast:true,
+            position:"top-right"
+        })
+    })
+
+    socket.on('newMessage',mensaje=>{
+        let txt=''
+        txt+=`<p class="mensaje"><strong>${mensaje.emisor}</strong>:<i>${mensaje.mensaje}</i></p><br>`
+
+        divMensajes.innerHTML+=txt
+        divMensajes.scrollTop=divMensajes.scrollHeight;
+
+    })
+}) 
+</script>
+</body>
+</html>

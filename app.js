@@ -2,7 +2,8 @@ const express = require('express');
 const path = require('path');
 const handlebars = require('express-handlebars');
 const mongoose = require('mongoose');
-const productsRouter = require('./src/dao/Routes/products.router');
+const productsRouter = require('./src/Routes/products.router');
+const cartsRouter = require('./src/Routes/carts.router');
 const http = require('http'); 
 const socketIo = require('socket.io'); 
 
@@ -28,13 +29,39 @@ mongoose
   .catch(error => console.log(error));
 
 app.use('/api/products', productsRouter);
+app.use('/api/carts', cartsRouter);
+app.get('/chat',(req,res)=>{
+  res.setHeader('Content-Type','text/html');
+  res.status(200).render('chat');
+})
 
 const server = http.createServer(app);
 
 const io = socketIo(server);
 
-io.on('connection', (socket) => {
+let mensajes = [{
+  emisor: 'Server',
+  mensaje: 'Bienvenido al chat'
+}]
+
+let users = []
+
+io.on('connection', socket => {
   console.log('Usuario conectado');
+
+  socket.on('id',nombre =>{
+    users.push({
+      id:socket.id, 
+      nombre
+    })
+  socket.emit('bienvenida',mensajes); 
+
+  socket.broadcast.emit('newUser',nombre)
+  })
+  socket.on('nuevoMensaje',mensaje =>{
+    mensajes.push(mensaje)
+    io.emit('newMessage',mensaje)
+  })
 });
 
 server.listen(port, () => {

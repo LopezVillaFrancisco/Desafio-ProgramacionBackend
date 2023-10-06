@@ -7,19 +7,45 @@
     
     {{{body}}}
     <h2>Productos</h2>
-
+<hr>
 <h3>Lista de productos</h3>
 <ol>
   {{#if productos}}
     {{#each @root.productos}}
-  <li>{{this.title}} - ${{this.price}}</li>
+    <p>{{this._id}}</p>
+  <li>{{this.title}} - ${{this.price}}</li> 
+  <button class="add-to-cart" id={{this._id}}>Agregar al carrito</button>
     {{/each}}
   {{else}}
     <li>No se encontraron productos</li>
   {{/if}}
 </ol>
+    <script src="/socket.io/socket.io.js"></script> 
+    <script>
+      document.addEventListener('click', async (event) => {
+    if (event.target.classList.contains('add-to-cart')) {
+        const productId = event.target.getAttribute('id');
+        console.log(productId) 
+        
+        try {
+            const response = await fetch(`/api/carts/651f5bb5f8d269d262598418/product/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
 
-
-    <script src="/socket.io/socket.io.js"></script>
+            if (response.ok) {
+                console.log('Producto agregado al carrito con éxito');
+                alert("Se agrego al Carrito 1")
+            } else {
+                console.error('Error al agregar el producto al carrito');
+            }
+        } catch (error) {
+            console.error('Error de red al agregar el producto al carrito:', error);
+        }
+    }
+});
+    </script>
 </body>
 </html>

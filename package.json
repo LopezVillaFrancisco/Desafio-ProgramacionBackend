@@ -2,9 +2,9 @@
   "name": "desafio-01",
   "version": "1.0.0",
   "description": "",
-  "main": "productManager.js",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/app.js"
   },
   "keywords": [],
   "author": "",
@@ -15,5 +15,8 @@
     "handlebars": "^4.7.8",
     "mongoose": "^7.5.2",
     "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }

@@ -5,27 +5,17 @@
 </head>
 <body>
     <h1>Lista de Productos en Tiempo Real</h1>
-    <ul id="product-list">
-        {{#each products}}
-        <li>
-            Título: {{this.title}}<br>
-            Descripción: {{this.description}}<br>
-            Precio: {{this.price}}<br>
-            Thumbnail: {{this.thumbnail}}<br>
-            Código: {{this.code}}<br>
-            Stock: {{this.stock}}
-        </li>
-        {{/each}}
-    </ul>
-
     <div>
         <h2>Agregar Nuevo Producto</h2>
-        <form id="add-product-form">
+        <form id="add-product-form" action="/api/products/realtimeproducts" method="post">
             <label for="title">Título:</label>
             <input type="text" id="title" name="title" required><br>
 
             <label for="description">Descripción:</label>
             <input type="text" id="description" name="description" required><br>
+
+            <label for="category">Categoria:</label>
+            <input type="text" id="category" name="category" required><br>
 
             <label for="price">Precio:</label>
             <input type="number" id="price" name="price" required><br>
@@ -40,54 +30,94 @@
             <input type="number" id="stock" name="stock" required><br>
 
             <button type="submit">Agregar Producto</button>
-        </form>
+        </form> 
+        <hr>
+        <h2>Productos Creados</h2>
+        <ul id="product-list">
+        {{#each products}}
+        <li>
+            Título: {{this.title}}<br>
+            Descripción: {{this.description}}<br>
+            Categoria: {{this.category}}<br>
+            Precio: {{this.price}}<br>
+            Thumbnail: {{this.thumbnail}}<br>
+            Código: {{this.code}}<br>
+            Stock: {{this.stock}}
+        </li>
+        {{/each}}
+    </ul>
+
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const socket = io.connect();
+            const products = [];
 
-            
-            const addProduct = (event) => {
-                event.preventDefault();
-
-                const title = document.getElementById('title').value;
-                const description = document.getElementById('description').value;
-                const price = parseFloat(document.getElementById('price').value);
-                const thumbnail = document.getElementById('thumbnail').value;
-                const code = document.getElementById('code').value;
-                const stock = parseInt(document.getElementById('stock').value);
-
-                const newProduct = {
-                    title,
-                    description,
-                    price,
-                    thumbnail,
-                    code,
-                    stock
-                };
-
-                socket.emit('addProduct', newProduct);
-            };
-            socket.on('updateProducts', (products) => {
-                const productList = document.getElementById('product-list');
-                productList.innerHTML = ''; 
-                products.forEach((product) => {
-                    const listItem = document.createElement('li');
-                    listItem.innerHTML = `
-                        Título: ${product.title}<br>
-                        Descripción: ${product.description}<br>
-                        Precio: ${product.price}<br>
-                        Thumbnail: ${product.thumbnail}<br>
-                        Código: ${product.code}<br>
-                        Stock: ${product.stock}
-                    `;
-                    productList.appendChild(listItem);
-                });
+            socket.on('connect', () => {
+                console.log('Conectado al servidor Socket.io');
             });
-            const addProductForm = document.getElementById('add-product-form');
-            addProductForm.addEventListener('submit', addProduct);
+
+            const addProduct = (event) => {
+    console.log('asasasaa');
+    event.preventDefault();
+    const title = document.getElementById('title').value;
+    const description = document.getElementById('description').value;
+    const category = document.getElementById('category').value;
+    const price = parseFloat(document.getElementById('price').value);
+    const thumbnail = document.getElementById('thumbnail').value;
+    const code = document.getElementById('code').value;
+    const stock = parseInt(document.getElementById('stock').value);
+
+    const newProduct = {
+        title,
+        description,
+        category,
+        price,
+        thumbnail,
+        code,
+        stock
+    };
+
+    fetch('/api/products/realtimeproducts', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newProduct),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => { 
+        products.push(data.producto);
+
+        const productList = document.getElementById('product-list');
+        productList.innerHTML = '';
+        products.forEach((product) => {
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                Título: ${product.title}<br>
+                Descripción: ${product.description}<br>
+                Categoria: ${product.category}<br>
+                Precio: ${product.price}<br>
+                Thumbnail: ${product.thumbnail}<br>
+                Código: ${product.code}<br>
+                Stock: ${product.stock}
+            `;
+            productList.appendChild(listItem);
+        });
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+};
+    const addProductForm = document.getElementById('add-product-form');
+        addProductForm.addEventListener('submit', addProduct);
         });
     </script>
 </body>
