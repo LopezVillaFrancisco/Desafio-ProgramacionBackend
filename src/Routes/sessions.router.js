@@ -1,12 +1,13 @@
 const express = require('express');
 const { Router } = express;
 const router = Router();
-const session = require('express-session'); 
+const session = require('express-session');
+const usuariosModelo = require('../dao/Mongo/models/Usuario')
 const bodyParser = require('body-parser'); 
 const passport = require('passport');
 
 router.use(session({ secret: 'palabraSecreta', resave: true, saveUninitialized: true }));
-router.use(bodyParser.urlencoded({ extended: false }));
+router.use(bodyParser.urlencoded({ extended: true }));
 
 router.get('/logout', (req, res) => {
   req.session.destroy((err) => {
@@ -18,16 +19,16 @@ router.get('/logout', (req, res) => {
 });
 
 router.get('/', (req, res) => {
-  let verLogin = true;
-  if (req.session.usuario) {
-    verLogin = false;
+  if (req.isAuthenticated()) {
+    return res.redirect('/session/perfil');
   }
   res.status(200).render('login', {
-    verLogin,
+    verLogin: true,
   });
 });
 
-router.get('/singUp', auth2, (req, res) => {
+
+router.get('/singUp', (req, res) => {
   let error = false;
   let errorDetalle = '';
   if (req.query.error) {
@@ -41,7 +42,7 @@ router.get('/singUp', auth2, (req, res) => {
   });
 });
 
-router.get('/login', auth2, (req, res) => {
+router.get('/login', (req, res) => {
   let error = false;
   let errorDetalle = '';
   if (req.query.error) {
@@ -63,12 +64,17 @@ router.get('/login', auth2, (req, res) => {
   });
 });
 
-router.get('/perfil', auth, (req, res) => {
-  res.status(200).render('perfil', {
-    verLogin: false,
-    usuario: req.session.usuario,
-  });
-}); 
+router.get('/perfil', (req, res) => {
+  if (req.isAuthenticated() && req.user) {
+    console.log('Usuario autenticado:', req.user);
+    res.status(200).render('perfil', {
+      verLogin: false,
+      perfil: req.user,
+    });
+  } else {
+    res.status(401).redirect('/session/login?mensaje=Debes iniciar sesión para acceder al perfil');
+  }
+});
 
 router.get('/current', (req, res) => {
   if (req.isAuthenticated()) {
@@ -77,19 +83,17 @@ router.get('/current', (req, res) => {
     res.status(401).json({ mensaje: 'No autorizado' });
   }
 });
-
 router.post('/registro', function(req, res, next) {
-    passport.authenticate('registro', function(err, user, info, status) {
-      if (err) { return next(err) }
-      if (!user) { return res.redirect(`/session/singUp?error=${info.message?info.message:info.toString()}`) }
-        req.user=user
-        return next()
-    })(req, res, next);
-  } ,(req,res)=>{
-
-    res.status(200).redirect(`/session/login?mensaje=Usuario ${req.user.nombre} registrado correctamente. Username: ${req.user.email}`)
-})
-
+  passport.authenticate('registro', function(err, user, info, status) {
+    if (err) { return next(err) }
+    if (!user) { return res.redirect(`/session/singUp?error=${info.message?info.message:info.toString()}`) }
+    console.log('Usuario registrado:', user);
+    req.user = user;
+    return next();
+  })(req, res, next);
+}, (req, res) => {
+  res.status(200).redirect(`/session/login?mensaje=Usuario ${req.user.nombre} registrado correctamente. Username: ${req.user.email}`);
+});
 
 router.post('/login', function(req, res, next) {
   passport.authenticate('login', function(err, user, info, status) {
@@ -97,7 +101,7 @@ router.post('/login', function(req, res, next) {
     if (!user) { 
       return res.redirect(`/session/login?error=${info.message ? info.message : info.toString()}`);
     }
-
+    console.log('Usuario logueado:', user);
     req.logIn(user, function(err) {
       if (err) { return next(err); }
       return res.redirect(`/session/perfil?mensaje=Usuario ${user.nombre} logueado correctamente. Rol: ${user.rol}`);

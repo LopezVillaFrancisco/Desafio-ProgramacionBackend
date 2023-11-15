@@ -1,7 +1,8 @@
 const { Router } = require("express");
 const cartModel = require("../dao/Mongo/models/Cart");
 const modeloUsuarios = require("../dao/Mongo/models/Usuario");
-const productsModel = require("../dao/Mongo/models/products.models"); 
+const productsModel = require("../dao/Mongo/models/products.models");  
+const Ticket = require('../dao/Mongo/models/Ticket')
 
 const router = Router();
 
@@ -159,48 +160,51 @@ router.put('/:cid/product/:pid', async (req, res) => {
     }
 });
 
+
 router.post('/:cid/purchase', async (req, res) => {
-    try {
-      const cartId = req.params.cid;
-      const cart = await Cart.findById(cartId).populate('products.product');
-  
-      const productosComprar = [];
-      const productosSinStock = [];
-  
-      for (const item of cart.products) {
-        const product = item.product;
-        const quantity = item.quantity;
-  
-        if (product.stock >= quantity) {
-          product.stock -= quantity;
-          productosComprar.push(product);
-        } else {
-          productosSinStock.push(product._id);
-        }
-      }
-  
-      if (productosComprar.length > 0) {
-        const ticket = new Ticket({
-          code: generateTicketCode(),
-          amount: productosComprar.length,
-          purchaser: req.user.email
-        });
-  
-        await ticket.save();
-        const productsToKeep = cart.products.filter(item => !productosComprar.includes(item.product));
-        cart.products = productsToKeep;
-        await cart.save();
-  
-        res.status(200).json({ ticket });
-      } else {
-        res.status(400).json({ message: 'No products available for purchase' });
-      }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Internal server error' });
+  try {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Usuario no autenticado' });
     }
-  });
-  
+
+    const cart = await cartModel.findById('651f5bb5f8d269d262598418').populate('products.product');
+
+    const productosComprar = [];
+    const productosSinStock = [];
+
+    for (const item of cart.products) {
+      const product = item.product;
+      const quantity = item.quantity;
+
+      if (product.stock >= quantity) {
+        product.stock -= quantity;
+        productosComprar.push(product);
+      } else {
+        productosSinStock.push(product._id);
+      }
+    }
+
+    if (productosComprar.length > 0) {
+      const ticket = new Ticket({
+        code: generateTicketCode(),
+        amount: productosComprar.length,
+        purchaser: req.user.email || 'Usuario no autenticado' 
+      });
+
+      await ticket.save();
+      const productsToKeep = cart.products.filter(item => !productosComprar.includes(item.product));
+      cart.products = productsToKeep;
+      await cart.save();
+
+      res.status(200).json({ ticket });
+    } else {
+      res.status(400).json({ message: 'No products available for purchase' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+})  
   async function generateTicketCode() {
     const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     const longitudCode = 8;
@@ -208,9 +212,9 @@ router.post('/:cid/purchase', async (req, res) => {
   
     let esUnico = false;
     while (!esUnico) {
-      for (let i = 0; i < codeLength; i++) {
-        const codeRandom = Math.floor(Math.random() * characters.length);
-        code += characters[codeRandom];
+      for (let i = 0; i < longitudCode; i++) {
+        const codeRandom = Math.floor(Math.random() * caracteres.length);
+        code += caracteres[codeRandom];
       }
   
       const existeCodigo = await Ticket.findOne({ code });

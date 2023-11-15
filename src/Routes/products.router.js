@@ -15,7 +15,7 @@ const isAdmin = (req, res, next) => {
   if (req.isAuthenticated() && req.user.rol === 'Admin') {
     return next();
   }
-  res.status(403).send('Solo el Admin puede crear nuevos productos');
+  res.status(403).json({message:'Solo el Admin puede crear nuevos productos'});
 };
 
 router.get('/', async (req, res) => {
@@ -83,7 +83,7 @@ router.post('/realtimeproducts', passport.authenticate('login', { session: true 
 router.put('/:id', async (req, res) => {
   usuario = req.user
   if (!usuario.rol === 'Admin') {
-    return res.render('Solo el Admin puede crear nuevos Producutos')
+    return res.json({message:'Solo el Admin puede crear nuevos Producutos'})
   }
   try {
     const productId = req.params.id;

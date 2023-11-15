@@ -9,7 +9,9 @@ const sessionRouter = require('./src/Routes/sessions.router');
 const http = require('http');
 const socketIo = require('socket.io');
 const passport = require('passport');
-const { initPassport } = require('./src/config/passport.config');
+const { initPassport } = require('./src/config/passport.config'); 
+const exphbs = require('express-handlebars');
+
 
 const app = express();
 const port = 8080;
@@ -26,7 +28,7 @@ app.engine(
 );
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, '/src/views'));
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname,'/public')));
