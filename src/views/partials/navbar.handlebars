@@ -1,0 +1,12 @@
+<ul style="display: flex; list-style: none;">
+    <li style="font-size:20px; padding:20px"><a href="/session">Home</a></li>
+    {{#if verLogin}}
+        <li style="font-size:20px; padding:20px"><a href="/session/singup">Sing Up</a></li>
+        <li style="font-size:20px; padding:20px"><a href="/session/login">Log in</a></li>
+    {{else}}
+        <li style="font-size:20px; padding:20px"><a href="/session/perfil">Perfil</a></li>
+        <li style="font-size:20px; padding:20px"><a href="/session/logout">Log Out</a></li> 
+        <li style="font-size:20px; padding:20px"><a href="/api/products/">Productos</a></li>
+        <li style="font-size:20px; padding:20px"><a href="/chat">Chat</a></li>
+    {{/if}}
+</ul>
