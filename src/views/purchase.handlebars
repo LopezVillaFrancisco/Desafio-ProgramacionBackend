@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Realizar Compra</title>
+</head>
+<body>
+  <h1>Productos en el Carrito</h1>
+  {{#if productosComprar.length}}
+    <ul>
+      {{#each productosComprar}}
+        <li>{{this.name}} - Cantidad: {{this.quantity}}</li>
+      {{/each}}
+    </ul>
+    <form action="/api/carts/651f5bb5f8d269d262598418/purchase" method="POST">
+      <button type="submit">Realizar Compra</button>
+    </form>
+  {{else}}
+    <p>No hay productos disponibles para comprar en el carrito.</p>
+  {{/if}}
+</body>
+</html>

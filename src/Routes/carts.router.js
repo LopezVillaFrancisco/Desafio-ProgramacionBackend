@@ -160,6 +160,17 @@ router.put('/:cid/product/:pid', async (req, res) => {
     }
 });
 
+router.get('/:cid/purchase', async (req, res) => {
+  try {
+    const cart = await cartModel.findById('651f5bb5f8d269d262598418').populate('products.product');
+    const productosComprar = cart.products.filter(item => item.product.stock >= item.quantity);
+
+    res.render('purchase', { cart, productosComprar });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 router.post('/:cid/purchase', async (req, res) => {
   try {
@@ -188,7 +199,7 @@ router.post('/:cid/purchase', async (req, res) => {
       const ticket = new Ticket({
         code: generateTicketCode(),
         amount: productosComprar.length,
-        purchaser: req.user.email || 'Usuario no autenticado' 
+        purchaser: req.user.email,
       });
 
       await ticket.save();
@@ -204,29 +215,29 @@ router.post('/:cid/purchase', async (req, res) => {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
-})  
-  async function generateTicketCode() {
-    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    const longitudCode = 8;
-    let code = '';
-  
-    let esUnico = false;
-    while (!esUnico) {
-      for (let i = 0; i < longitudCode; i++) {
-        const codeRandom = Math.floor(Math.random() * caracteres.length);
-        code += caracteres[codeRandom];
-      }
-  
-      const existeCodigo = await Ticket.findOne({ code });
-      if (!existeCodigo) {
-        esUnico = true;
-      } else {
-        code = '';
-      }
+});
+
+async function generateTicketCode() {
+  const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const longitudCode = 8;
+  let code = '';
+
+  let esUnico = false;
+  while (!esUnico) {
+    for (let i = 0; i < longitudCode; i++) {
+      const codeRandom = Math.floor(Math.random() * caracteres.length);
+      code += caracteres[codeRandom];
     }
-  
-    return code;
+
+    const existeCodigo = await Ticket.findOne({ code });
+    if (!existeCodigo) {
+      esUnico = true;
+    } else {
+      code = '';
+    }
   }
-  
+
+  return code;
+}
 
 module.exports = router;
