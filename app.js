@@ -19,13 +19,14 @@ const port = 8080;
 app.use(session({ secret: 'palabraSecreta', resave: true, saveUninitialized: true }));
 
 app.engine(
-  'handlebars',
+  'handlebars', 
   handlebars.engine({
-    allowProtoPropertiesByDefault: {
-      trim: true,
-    },
+    runtimeOptions:{
+      allowProtoPropertiesByDefault: true
+    }
   })
-);
+); 
+
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, '/src/views'));
 app.use(express.urlencoded({ extended: true }));
