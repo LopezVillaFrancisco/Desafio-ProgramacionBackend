@@ -66,7 +66,10 @@ router.get('/login', (req, res) => {
 
 router.get('/perfil', (req, res) => {
   if (req.isAuthenticated() && req.user) {
-    console.log('Usuario autenticado:', req.user);
+    console.log('Usuario autenticado:', req.user); 
+    console.log("nombre",req.user.nombre,' ',req.user.apellido)
+    console.log('Email ', req.user.email)
+    console.log('rol ', req.user.rol)
     res.status(200).render('perfil', {
       verLogin: false,
       perfil: req.user,

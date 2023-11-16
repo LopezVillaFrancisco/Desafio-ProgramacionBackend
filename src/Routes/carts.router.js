@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
 router.post('/:cid/product/:pid', async (req, res) => { 
     usuario = req.user 
     if(usuario.rol === 'Admin'){
-      return res.render('Solo los usuarios pueden agregar productos a un carrito')
+      return res.json({error:'Solo los usuarios pueden agregar productos a un carrito'})
     }
 
     try {
@@ -171,7 +171,6 @@ router.get('/:cid/purchase', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
-
 router.post('/:cid/purchase', async (req, res) => {
   try {
     if (!req.isAuthenticated()) {
@@ -196,13 +195,15 @@ router.post('/:cid/purchase', async (req, res) => {
     }
 
     if (productosComprar.length > 0) {
+      const code = await generateTicketCode(); 
       const ticket = new Ticket({
-        code: generateTicketCode(),
+        code: code,
         amount: productosComprar.length,
         purchaser: req.user.email,
       });
 
       await ticket.save();
+
       const productsToKeep = cart.products.filter(item => !productosComprar.includes(item.product));
       cart.products = productsToKeep;
       await cart.save();

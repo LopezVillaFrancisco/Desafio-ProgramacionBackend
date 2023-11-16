@@ -17,9 +17,13 @@ const initPassport = () => {
         if (existe) {
           return done(null, false, { message: `Ya existe el Usuario ${username}` });
         }
-
+        if(email ==='adminCoder@coder.com' && password === 'adminCod3r123'){
+          rol= 'Admin';
+        }else{
+          rol = 'Usuario'
+        }
         let usuario = await modeloUsuarios.create({
-          nombre, apellido, email,
+          nombre, apellido, email,rol,
           password: bcrypt.hashSync(password, bcrypt.genSaltSync(10))
         });
 

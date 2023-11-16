@@ -21,7 +21,7 @@ app.use(session({ secret: 'palabraSecreta', resave: true, saveUninitialized: tru
 app.engine(
   'handlebars',
   handlebars.engine({
-    allowedProtoMethods: {
+    allowProtoPropertiesByDefault: {
       trim: true,
     },
   })
