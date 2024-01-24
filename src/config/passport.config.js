@@ -37,7 +37,7 @@ const initPassport = () => {
   passport.use('login', new local.Strategy(
     { usernameField: 'email' },
     async (username, password, done) => {
-      try {
+      try { 
         let usuario = await modeloUsuarios.findOne({ email: username });
         if (!usuario) {
           return done(null, false, { message: `No existe el usuario ${username}` });

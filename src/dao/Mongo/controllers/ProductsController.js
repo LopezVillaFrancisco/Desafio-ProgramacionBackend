@@ -2,7 +2,11 @@ const Product = require('../models/products.models');
 
 const productController = {
   getAllProducts: async (req, res) => {
-    try {
+    try { 
+      if (!req.isAuthenticated()) {
+        
+        return res.redirect('/session/?mensaje=Debes iniciar sesión para ver los productos');
+      }
       const productos = await Product.find().lean(true);
       res.render('home', { productos: productos });
     } catch (error) {

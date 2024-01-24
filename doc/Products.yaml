@@ -1,0 +1,141 @@
+openapi: 3.0.0
+info:
+  title: API de Productos
+  description: API para administrar productos
+  version: 1.0.0
+
+paths:
+  /api/products:
+    get:
+      summary: Obtener todos los productos
+      description: Retorna una lista de todos los productos.
+      responses:
+        '200':
+          description: Éxito
+      security:
+        - cookieAuth: []
+
+    post:
+      summary: Crear un nuevo producto
+      description: Crea un nuevo producto.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#components/requestBodies/createProduct'
+      responses:
+        '201':
+          description: Producto creado exitosamente
+        '500':
+          description: Error interno del servidor
+      security:
+        - cookieAuth: []
+
+  /api/products/realtimeproducts:
+    get:
+      summary: Obtener productos en tiempo real
+      description: Retorna una lista de productos en tiempo real.
+      responses:
+        '200':
+          description: Éxito
+      security:
+        - cookieAuth: []
+
+    post:
+      summary: Crear un nuevo producto en tiempo real
+      description: Crea un nuevo producto en tiempo real.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#components/requestBodies/createProduct'
+      responses:
+        '201':
+          description: Producto creado exitosamente
+        '500':
+          description: Error interno del servidor
+      security:
+        - cookieAuth: []
+
+  /api/products/{id}:
+    put:
+      summary: Actualizar un producto
+      description: Actualiza un producto existente.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del producto a actualizar.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#components/requestBodies/updateProduct'
+      responses:
+        '200':
+          description: Producto actualizado exitosamente
+        '500':
+          description: Error interno del servidor
+      security:
+        - cookieAuth: []
+
+    delete:
+      summary: Eliminar un producto
+      description: Elimina un producto existente.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del producto a eliminar.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Producto eliminado exitosamente
+        '500':
+          description: Error interno del servidor
+      security:
+        - cookieAuth: []
+
+components:
+  requestBodies:
+    createProduct:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        thumbnail:
+          type: string
+        code:
+          type: string
+        stock:
+          type: number
+      required:
+        - title
+        - description
+        - price
+        - thumbnail
+        - code
+        - stock
+      example:
+        title: Prueba
+        description: Prueba
+        price: 10.99
+        thumbnail: "url_imagen_prueba.jpg"
+        code: "PRB123"
+        stock: 50
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid

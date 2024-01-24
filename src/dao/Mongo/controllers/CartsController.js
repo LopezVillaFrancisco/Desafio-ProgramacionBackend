@@ -26,8 +26,9 @@ const cartController = {
 
   addProductToCart: async (req, res) => {
     const usuario = req.user;
-    if (usuario.rol === 'Admin') {
-      return res.json({ error: 'Solo los usuarios pueden agregar productos a un carrito' });
+    if (usuario && usuario.rol === 'Admin') {
+      const errorMessage = 'Los administradores no pueden agregar productos al carrito.'; 
+      return res.status(400).json({ error: errorMessage, isAdmin: true });
     }
 
     try {
@@ -151,61 +152,58 @@ const cartController = {
     }
   },
 
-  purchaseCart: async (req, res) => {
-    try {
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ message: 'Usuario no autenticado' });
-      }
-  
-      const cartId = req.params.cid;
-  
-      const cart = await cartModel.findById(cartId).populate('products.product');
-  
-      if (!cart) {
-        return res.status(404).json({ error: 'Carrito no encontrado' });
-      }
-  
-      const productosComprar = [];
-      const productosSinStock = [];
-  
-      for (const item of cart.products) {
-        const product = item.product;
-        const quantity = item.quantity;
-  
-        if (product.stock >= quantity) {
-          product.stock -= quantity;
-          productosComprar.push(product);
-        } else {
-          productosSinStock.push(product._id);
-        }
-      }
-  
-      if (productosComprar.length > 0) {
-        const code = await generateTicketCode();
-  
-        const ticket = new Ticket({
-          code: code,
-          amount: productosComprar.length,
-          purchaser: req.user.email,
-        });
-  
-        await ticket.save();
-  
-        const productsToKeep = cart.products.filter(item => !productosComprar.find(product => product._id.equals(item.product)));
-        cart.products = productsToKeep;
-  
-        await cart.save();
-  
-        res.status(200).json({ message: 'Compra exitosa', ticket });
-      } else {
-        res.status(400).json({ message: 'No hay suficiente stock para algunos productos', productosSinStock });
-      }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error al procesar la compra del carrito' });
+purchaseCart: async (req, res) => {
+  try {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Usuario no autenticado' });
     }
-  },
-  
+
+    const cartId = req.params.cid;
+
+    const cart = await cartModel.findById(cartId).populate('products.product');
+
+    if (!cart) {
+      return res.status(404).json({ error: 'Carrito no encontrado' });
+    }
+
+    const productosComprar = [];
+    const productosSinStock = [];
+
+    for (const item of cart.products) {
+      const product = item.product;
+      const quantity = item.quantity;
+
+      if (product.stock >= quantity) {
+        product.stock -= quantity;
+        productosComprar.push(product);
+      } else {
+        productosSinStock.push(product._id);
+      }
+    }
+
+    if (productosComprar.length > 0) {
+      const ticket = new Ticket({
+        amount: productosComprar.length,
+        purchaser: req.user.email,
+      });
+
+      await ticket.save();
+
+      const productsToKeep = cart.products.filter(item => !productosComprar.find(product => product._id.equals(item.product)));
+      cart.products = productsToKeep;
+
+      await cart.save();
+
+      res.status(200).json({ message: 'Compra exitosa', ticket });
+    } else {
+      res.status(400).json({ message: 'No hay suficiente stock para algunos productos', productosSinStock });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al procesar la compra del carrito' });
+  }
+},
+
 };
 
 module.exports = cartController;

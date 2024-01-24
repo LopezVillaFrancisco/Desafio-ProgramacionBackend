@@ -1,0 +1,148 @@
+openapi: 3.0.0
+info:
+  title: API de Sesiones
+  description: API para gestión de sesiones y usuarios
+  version: 1.0.0
+
+paths:
+  /session/logout:
+    get:
+      summary: Cerrar sesión
+      description: Cierra la sesión del usuario.
+      responses:
+        '302':
+          description: Redirige al inicio de sesión con mensaje de logout.
+        '500':
+          description: Error interno del servidor
+      security:
+        - cookieAuth: []
+
+  /session/:
+    get:
+      summary: Mostrar formulario de inicio de sesión
+      description: Muestra el formulario de inicio de sesión.
+      responses:
+        '200':
+          description: Éxito
+      security:
+        - cookieAuth: []
+
+  /session/singUp:
+    get:
+      summary: Mostrar formulario de registro
+      description: Muestra el formulario de registro.
+      responses:
+        '200':
+          description: Éxito
+      security:
+        - cookieAuth: []
+
+  /session/login:
+    get:
+      summary: Mostrar formulario de inicio de sesión con detalles
+      description: Muestra el formulario de inicio de sesión con detalles.
+      responses:
+        '200':
+          description: Éxito
+      security:
+        - cookieAuth: []
+
+  /session/perfil:
+    get:
+      summary: Mostrar perfil del usuario
+      description: Muestra el perfil del usuario.
+      responses:
+        '200':
+          description: Éxito
+        '401':
+          description: No autorizado
+      security:
+        - cookieAuth: []
+
+  /session/current:
+    get:
+      summary: Obtener usuario actual
+      description: Obtiene el usuario actual.
+      responses:
+        '200':
+          description: Éxito
+        '401':
+          description: No autorizado
+      security:
+        - cookieAuth: []
+
+  /session/registro:
+    post:
+      summary: Registrar nuevo usuario
+      description: Registra un nuevo usuario.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#components/requestBodies/registerUser'
+      responses:
+        '302':
+          description: Redirige al inicio de sesión con mensaje de usuario registrado.
+        '500':
+          description: Error interno del servidor
+      security:
+        - cookieAuth: []
+
+  /session/loginPost:
+    post:
+      summary: Iniciar sesión
+      description: Inicia sesión para un usuario existente.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#components/requestBodies/loginUser'
+      responses:
+        '302':
+          description: Redirige al perfil con mensaje de usuario logueado.
+        '500':
+          description: Error interno del servidor
+      security:
+        - cookieAuth: []
+
+components:
+  requestBodies:
+    registerUser:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - username
+        - email
+        - password
+      example:
+        username: usuarioPrueba
+        email: prueba@example.com
+        password: contraseña123
+
+    loginUser:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+      example:
+        email: prueba@example.com
+        password: contraseña123
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid

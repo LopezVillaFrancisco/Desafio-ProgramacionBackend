@@ -22,29 +22,34 @@
 </ol>
     <script src="/socket.io/socket.io.js"></script> 
     <script>
-      document.addEventListener('click', async (event) => {
-    if (event.target.classList.contains('add-to-cart')) {
-        const productId = event.target.getAttribute('id');
-        console.log(productId) 
-        
-        try {
-            const response = await fetch(`/api/carts/651f5bb5f8d269d262598418/product/${productId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+   document.addEventListener('click', async (event) => {
+  if (event.target.classList.contains('add-to-cart')) {
+    const productId = event.target.getAttribute('id');
+    console.log(productId) 
 
-            if (response.ok) {
-                console.log('Producto agregado al carrito con éxito');
-                alert("Se agrego al Carrito 1")
-            } else {
-                console.error('Error al agregar el producto al carrito');
-            }
-        } catch (error) {
-            console.error('Error de red al agregar el producto al carrito:', error);
+    try {
+      const response = await fetch(`/api/carts/651f5bb5f8d269d262598418/product/${productId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const responseData = await response.json();
+
+      if (response.ok) {
+        console.log('Producto agregado al carrito con éxito');
+        alert("Se agrego al Carrito 1");
+      } else {
+        console.error('Error al agregar el producto al carrito');
+        if (responseData.isAdmin) {
+          alert("Los administradores no pueden agregar productos al carrito.");
         }
+      }
+    } catch (error) {
+      console.error('Error de red al agregar el producto al carrito:', error);
     }
+  }
 });
     </script>
 </body>
