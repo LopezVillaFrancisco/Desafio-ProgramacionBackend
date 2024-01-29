@@ -4,7 +4,10 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "dev": "nodemon src/app.js"
+    "dev": "nodemon src/app.js",
+    "test:sessions": "mocha src/test/sessions.test.js",
+    "test:carts": "mocha src/test/carts.test.js",
+    "test:products": "mocha src/test/products.test.js"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +31,10 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "chai": "^4.3.4",
+    "chai-http": "^4.4.0",
+    "mocha": "^10.2.0",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.4"
   }
 }

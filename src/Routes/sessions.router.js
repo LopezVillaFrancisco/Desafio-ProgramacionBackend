@@ -15,6 +15,6 @@ router.get('/login', sessionController.showLoginWithDetails);
 router.get('/perfil', sessionController.showProfile);
 router.get('/current', sessionController.getCurrentUser);
 router.post('/registro', sessionController.registerUser);
-router.post('/login', sessionController.loginUser);
+router.post('/loginPost', sessionController.loginUser);
 
 module.exports = router;

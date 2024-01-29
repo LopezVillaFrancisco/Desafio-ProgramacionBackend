@@ -2,8 +2,8 @@ const passport = require('passport');
 
 const sessionController = {
   setupSession: (req, res, next) => {
-    req.logout();
-    res.redirect('/session/login?mensaje=logout realizado');
+    res.status(200).redirect('/session/login?mensaje=logout realizado');
+    req.logout(next);
   },
 
   showLogin: (req, res) => {
@@ -58,23 +58,23 @@ const sessionController = {
   registerUser: (req, res, next) => {
     passport.authenticate('registro', (err, user, info) => {
       if (err) { return next(err); }
-      if (!user) { return res.redirect(`/session/singUp?error=${info.message ? info.message : info.toString()}`); }
-      return res.redirect(`/session/loginWithDetails?usuarioCreado=Usuario ${user.nombre} registrado correctamente. Username: ${user.email}`);
+      if (!user) { return res.status(409).redirect(`/session/singUp?error=${info.message ? info.message : info.toString()}`); }
+      return res.status(200).redirect(`/session/login?usuarioCreado=Usuario ${user.nombre} registrado correctamente. Username: ${user.email}`);
     })(req, res, next);
   },
 
   loginUser: (req, res, next) => {
-    passport.authenticate('login', (err, user, info) => {
+    passport.authenticate('loginPost', (err, user, info) => {
       if (err) { return next(err); }
       if (!user) {
-        return res.redirect(`/session/login?error=${info.message ? info.message : info.toString()}`);
+        return res.status(401).redirect(`/session/login?error=${info.message ? info.message : info.toString()}`);
       }
       req.logIn(user, (err) => {
         if (err) { return next(err); }
-        return res.redirect(`/session/perfil?mensaje=Usuario ${user.nombre} logueado correctamente. Rol: ${user.rol}`);
+        return res.status(200).redirect(`/session/perfil?mensaje=Usuario ${user.nombre} logueado correctamente. Rol: ${user.rol}`);
       });
     })(req, res, next);
-  },
+  },  
 };
 
 module.exports = sessionController;

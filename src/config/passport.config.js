@@ -34,7 +34,7 @@ const initPassport = () => {
     }
   ));
 
-  passport.use('login', new local.Strategy(
+  passport.use('loginPost', new local.Strategy(
     { usernameField: 'email' },
     async (username, password, done) => {
       try { 

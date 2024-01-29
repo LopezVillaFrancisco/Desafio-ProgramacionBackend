@@ -53,7 +53,7 @@ const options = {
       description: 'Documentación de la API de tu aplicación'
     }
   },
-  apis: ["./docs/*.yaml"]
+  apis: ['./doc/*yaml'] 
 };
 
 const specs = swaggerJsdoc(options);
@@ -62,11 +62,44 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 app.use('/api/products', productsRouter);
 app.use('/api/carts', cartsRouter);
 app.use('/session', sessionRouter);
+app.get('/chat', (req, res) => {
+  res.setHeader('Content-Type', 'text/html');
+  res.status(200).render('chat');
+});
+
 
 const server = http.createServer(app);
 
 const io = socketIo(server);
 
+let mensajes = [
+  {
+    emisor: 'Server',
+    mensaje: 'Bienvenido al chat',
+  },
+];
+
+let users = [];
+
+io.on('connection', (socket) => {
+  console.log('Usuario conectado');
+
+  socket.on('id', (nombre) => {
+    users.push({
+      id: socket.id,
+      nombre,
+    });
+    socket.emit('bienvenida', mensajes);
+
+    socket.broadcast.emit('newUser', nombre);
+  });
+  socket.on('nuevoMensaje', (mensaje) => {
+    mensajes.push(mensaje);
+    io.emit('newMessage', mensaje);
+  });
+})
+
 server.listen(port, () => {
   console.log(`Corriendo el server en el puerto ${port}`);
-});
+})
+module.exports = { app, server };
