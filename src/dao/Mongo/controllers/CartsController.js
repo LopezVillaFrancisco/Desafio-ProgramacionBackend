@@ -2,7 +2,17 @@ const cartModel = require("../models/Cart");
 const productsModel = require("../models/products.models");
 const Ticket = require('../models/Ticket');
 const mongoose = require('mongoose');
+const generateTicketCode = (length = 8) => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
 
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    code += characters.charAt(randomIndex);
+  }
+
+  return code;
+};
 const cartController = {
   createCart: async (req, res) => {
     try {
@@ -152,58 +162,44 @@ const cartController = {
     }
   },
 
-purchaseCart: async (req, res) => {
-  try {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: 'Usuario no autenticado' });
-    }
-
-    const cartId = req.params.cid;
-
-    const cart = await cartModel.findById(cartId).populate('products.product');
-
-    if (!cart) {
-      return res.status(404).json({ error: 'Carrito no encontrado' });
-    }
-
-    const productosComprar = [];
-    const productosSinStock = [];
-
-    for (const item of cart.products) {
-      const product = item.product;
-      const quantity = item.quantity;
-
-      if (product.stock >= quantity) {
-        product.stock -= quantity;
-        productosComprar.push(product);
-      } else {
-        productosSinStock.push(product._id);
+  purchaseCart: async (req, res) => {
+    try {
+      const cartId = req.params.cid;
+  
+      const cart = await cartModel.findById(cartId).populate('products.product');
+  
+      if (!cart) {
+        return res.status(404).json({ error: 'Carrito no encontrado' });
       }
+  
+      const productosComprar = [];
+      const productosSinStock = [];
+  
+      for (const item of cart.products) {
+          productosComprar.push(item.product);
+      }
+  
+      if (productosComprar.length > 0) {
+        const code =  generateTicketCode();
+  
+        const ticket = new Ticket({
+          code: code,
+          amount: productosComprar.length
+        });
+  
+        await ticket.save();
+    
+        await cart.save();
+  
+        res.status(200).json({ message: 'Compra exitosa', ticket });
+      } else {
+        res.status(400).json({ message: 'No hay suficiente stock para algunos productos', productosSinStock });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error al procesar la compra del carrito' });
     }
-
-    if (productosComprar.length > 0) {
-      const ticket = new Ticket({
-        amount: productosComprar.length,
-        purchaser: req.user.email,
-      });
-
-      await ticket.save();
-
-      const productsToKeep = cart.products.filter(item => !productosComprar.find(product => product._id.equals(item.product)));
-      cart.products = productsToKeep;
-
-      await cart.save();
-
-      res.status(200).json({ message: 'Compra exitosa', ticket });
-    } else {
-      res.status(400).json({ message: 'No hay suficiente stock para algunos productos', productosSinStock });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al procesar la compra del carrito' });
-  }
-},
-
+  },
 };
 
 module.exports = cartController;

@@ -14,10 +14,6 @@ const TicketSchema = new Schema({
     type: Number,
     required: true,
   },
-  purchaser: {
-    type: String,
-    required: true,
-  },
 });
 
 const Ticket = mongoose.model('Ticket', TicketSchema);
