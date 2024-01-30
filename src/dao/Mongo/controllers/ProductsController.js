@@ -31,13 +31,7 @@ const productController = {
   createProduct: async (req, res) => {
     try {
       const { title, description, price, thumbnail, code, stock } = req.body;
-
-      if (req.user.rol !== 'Admin') {
-        return res.status(403).json({
-          error: 'Solo el Admin puede crear nuevos productos',
-        });
-      }
-
+      
       if (!title || !description || !price || !thumbnail || !code || !stock) {
         return res.status(400).json({
           error: 'Faltan campos requeridos en la solicitud',

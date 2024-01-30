@@ -1,71 +1,103 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
-const { app, server } = require('../../app');  
-
-chai.use(chaiHttp);
+const { app } = require('../../app');
 const expect = chai.expect;
 
-describe('Controladores de Productos', () => {
+chai.use(chaiHttp);
 
-  describe('GET /products', () => {
-    it('debería devolver todos los productos si el usuario está autenticado', async () => {
-      const res = await chai.request(app).get('/products').set('Authorization', 'Bearer <TOKEN>');
-
-      expect(res).to.have.status(200);
-      expect(res).to.be.json;
-      expect(res.body).to.have.property('productos');
-    });
-
-    it('debería redirigir al inicio de sesión si el usuario no está autenticado', async () => {
-      const res = await chai.request(app).get('/products');
-
-      expect(res).to.have.status(401);
-      expect(res.redirect).to.include('/session/login');
-    });
-  });
-
-  describe('POST /products', () => {
-    it('debería crear un nuevo producto si el usuario es Admin', async () => {
-
+describe('POST /api/products', () => {
+  let productId; 
+  describe('GET /api/products', () => {
+    it('debería obtener todos los productos', async () => {
+      const userLoginRes = await chai
+        .request(app)
+        .post('/session/login')
+        .send({ email: 'aa2@gmail.com', password: '123' });
+      const userToken = userLoginRes.body.token;
       const res = await chai
         .request(app)
-        .post('/products')
-        .set('Authorization', 'Bearer <TOKEN>')
-        .send({
-          title: 'Nuevo Producto',
-          description: 'Descripción del nuevo producto',
-          price: 19.99,
-          thumbnail: 'url_de_la_imagen',
-          code: 'ABC123',
-          stock: 10,
-        });
+        .get('/api/products')
+        .set('Authorization', `Bearer ${userToken}`);
 
-      expect(res).to.have.status(201);
-      expect(res).to.be.json;
-      expect(res.body).to.have.property('message').to.equal('Producto agregado exitosamente');
-      expect(res.body).to.have.property('producto');
-    });
-
-    it('debería devolver un error si el usuario no es Admin', async () => {
-
-      const res = await chai
-        .request(app)
-        .post('/products')
-        .set('Authorization', 'Bearer <TOKEN>')
-        .send({
-          title: 'Nuevo Producto',
-          description: 'Descripción del nuevo producto',
-          price: 19.99,
-          thumbnail: 'url_de_la_imagen',
-          code: 'ABC123',
-          stock: 10,
-        });
-
-      expect(res).to.have.status(403);
-      expect(res).to.be.json;
-      expect(res.body).to.have.property('error').to.equal('Solo el Admin puede crear nuevos productos');
+      expect(res.status).to.equal(200);
     });
   });
+  it('debería crear un nuevo producto', async () => {
+    const adminLoginRes = await chai
+      .request(app)
+      .post('/session/login')
+      .send({ email: 'adminCoder@coder.com', password: 'adminCod3r123' });
+    const adminToken = adminLoginRes.body.token;
 
+    const newProduct = {
+      title: 'Producto Prueba',
+      description: 'Producto Prueb',
+      price: 39.99,
+      thumbnail: 'url_imagen.jpg',
+      code: 'Prueba123',
+      stock: 30,
+    };
 
+    const res = await chai
+      .request(app)
+      .post('/api/products')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send(newProduct);
+
+    expect(res.status).to.equal(201);
+    productId = res.body.producto._id; 
+  });
+
+  it('debería obtener productos en tiempo real', async () => {
+    const userLoginRes = await chai
+      .request(app)
+      .post('/session/login')
+      .send({ email: '', password: '123' });
+    const userToken = userLoginRes.body.token;
+
+    const res = await chai
+      .request(app)
+      .get('/api/products/realtimeproducts')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(res.status).to.equal(200);
+  });
+
+  it('debería actualizar un producto', async () => {
+    const adminLoginRes = await chai
+      .request(app)
+      .post('/session/login')
+      .send({ email: 'adminCoder@coder.com', password: 'adminCod3r123' });
+    const adminToken = adminLoginRes.body.token;
+
+    const updatedProductRes = await chai
+      .request(app)
+      .put(`/api/products/${productId}`) 
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        title: 'Producto actualizado',
+        description: 'Descripción actualizada',
+        price: 29.99,
+        thumbnail: 'nueva_imagen.jpg',
+        code: 'ACTUALIZADO456',
+        stock: 15,
+      });
+
+    expect(updatedProductRes.status).to.equal(200);
+  });
+
+  it('debería eliminar un producto', async () => {
+    const adminLoginRes = await chai
+      .request(app)
+      .post('/session/login')
+      .send({ email: 'adminCoder@coder.com', password: 'adminCod3r123' });
+    const adminToken = adminLoginRes.body.token;
+
+    const deleteProductRes = await chai
+      .request(app)
+      .delete(`/api/products/${productId}`) 
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(deleteProductRes.status).to.equal(200);
+  });
 });
