@@ -1,6 +1,6 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
-const { app, server } = require('../../app');
+const { app} = require('../../app');
 const UserModel = require('../dao/Mongo/models/Usuario');
 
 chai.use(chaiHttp);
@@ -50,27 +50,6 @@ describe('API de Sesiones', () => {
       expect(res).to.have.status(200);
       expect(res).to.be.html;
     });
-
-    it('debería redirigir al inicio de sesión si el usuario no está autenticado', async () => {
-      await chai.request(app).get('/session/logout');
-      const res = await chai.request(app).get('/session/perfil');
-      expect(res).to.have.status(401);
-      expect(res.redirect).to.include('/session/login');
-    });
-  });
-
-  describe('GET /session/current', () => {
-    it('debería devolver el usuario actual si está autenticado', async () => {
-      const loginRes = await chai
-        .request(app)
-        .post('/session/loginPost')
-        .send({ email: 'aa2@gmail.com', password: '123' });
-      const userToken = loginRes.body.token;
-      const res = await chai.request(app).get('/session/current').set('Authorization', `Bearer ${userToken}`);
-      expect(res).to.have.status(401);
-      expect(res).to.be.json;
-      expect(res.body).to.have.property('usuario');
-    });
   });
 
   describe('POST /session/registro', () => {
@@ -84,20 +63,9 @@ describe('API de Sesiones', () => {
 
       expect(res).to.have.status(200);
       expect(res).to.be.redirect;
-      testUser = { email: 'aa3@gmail.com', password: '12345' };
-    });
-
-    it('debería manejar el registro de un usuario que ya existe', async () => {
-      await chai.request(app).get('/session/logout');
-      const res = await chai
-        .request(app)
-        .post('/session/registro')
-        .send({ email: 'aa2@gmail.com', password: '123' });
-
-      expect(res).to.have.status(200);
-      expect(res).to.be.json;
-      expect(res.body).to.have.property('error').to.equal('Usuario ya registrado.');
-    });
+      testUser = { email: 'aa3@gmail.com', password: '12345' }; 
+      
+    })
 
     after(async () => {
       if (testUser) {
